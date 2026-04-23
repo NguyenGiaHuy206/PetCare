@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: petcare_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-petcare}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  backend:
+    build: .
+    container_name: petcare_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-user}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-petcare}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRE_MINUTES: ${JWT_ACCESS_EXPIRE_MINUTES:-15}
+      JWT_REFRESH_EXPIRE_DAYS: ${JWT_REFRESH_EXPIRE_DAYS:-7}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION:-ap-southeast-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      PYTHONPATH: /app   # ✅ fixes "No module named 'src'" in alembic
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+volumes:
+  postgres_data:
