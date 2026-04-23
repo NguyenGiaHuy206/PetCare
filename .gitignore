@@ -1,22 +1,3 @@
-<<<<<<< HEAD
-.venv/
-venv/
-**pycache**/
-*.pyc
-*.pyo
-*.pyd
-.env
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-*.log
-*.sqlite3
-*.db
-build/
-dist/
-*.egg-info/
-=======
 # Repo notes and reports
 /task.md
 /deep-research-report.md
@@ -41,4 +22,70 @@ dist/
 /frontend/Thumbs.db
 /frontend/.vscode/
 /frontend/.idea/
->>>>>>> 3dfc1d6 (fe with dummy data)
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# mypy
+.mypy_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+.next/
+
+# Vite
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# AWS
+.aws/
+
+# Alembic (keep migrations but ignore cache)
+src/persistence/migrations/__pycache__/
+
+# Claude
+.claude/
