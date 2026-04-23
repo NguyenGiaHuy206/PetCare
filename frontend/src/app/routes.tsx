@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Route } from "react-router";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
@@ -25,7 +25,7 @@ import PaymentStatus from "./pages/payment/PaymentStatus";
 import Reports from "./pages/reports/Reports";
 import Notifications from "./pages/notifications/Notifications";
 import NotFound from "./pages/NotFound";
-
+import AddPetForm from "./pages/pets/AddPetForm";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
       { path: "reset-password/:token", Component: ResetPassword },
       { path: "profile", Component: Profile },
       { path: "pets", Component: PetList },
-      { path: "pets/new", Component: PetForm },
+      { path: "pets/new", Component: AddPetForm },
       { path: "pets/:id", Component: PetDetail },
       { path: "pets/:id/edit", Component: PetForm },
       { path: "services", Component: ServiceList },

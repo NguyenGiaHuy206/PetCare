@@ -1,7 +1,39 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { Mail, Lock, User, Phone, PawPrint } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Register() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await register(email, password, fullName);
+      navigate("/login");
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -13,7 +45,12 @@ export default function Register() {
           <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
           <p className="mt-2 text-gray-600">Join our pet care community</p>
         </div>
-        <form className="mt-8 space-y-6 bg-white p-8 rounded-lg border">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-8 rounded-lg border">
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -28,6 +65,8 @@ export default function Register() {
                   name="name"
                   type="text"
                   required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="John Doe"
                 />
@@ -47,6 +86,8 @@ export default function Register() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="you@example.com"
                 />
@@ -64,6 +105,8 @@ export default function Register() {
                   id="phone"
                   name="phone"
                   type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+1 (555) 000-0000"
                 />
@@ -83,6 +126,8 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="••••••••"
                 />
@@ -102,6 +147,8 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="••••••••"
                 />
@@ -128,9 +175,10 @@ export default function Register() {
           <div>
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60"
             >
-              Create account
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </div>
         </form>

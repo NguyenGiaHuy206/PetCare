@@ -1,24 +1,75 @@
 import { Link, useNavigate } from "react-router";
-import { CreditCard, Lock, ArrowLeft } from "lucide-react";
+import { CreditCard, Lock, ArrowLeft, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { orderAPI } from "../../utils/api";
+import { CartItem, getCart, saveCart, clearCart } from "../../utils/cart";
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/payment/success');
-  };
-
-  const cartItems = [
-    { id: 1, name: "Premium Dog Food", price: 45.99, quantity: 1 },
-    { id: 2, name: "Interactive Cat Toy", price: 12.99, quantity: 2 },
-    { id: 3, name: "Comfortable Pet Bed", price: 34.99, quantity: 1 },
-  ];
+  useEffect(() => {
+    const currentCart = getCart();
+    setCartItems(currentCart);
+    setLoading(false);
+  }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.08;
   const shipping = subtotal > 50 ? 0 : 5.99;
   const total = subtotal + tax + shipping;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cartItems.length === 0) {
+      setError("Your cart is empty. Add products before checkout.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const items = cartItems.map((item) => ({
+        product_id: item.id,
+        quantity: item.quantity,
+      }));
+      const response = await orderAPI.create(items);
+      clearCart();
+      window.location.href = response.checkout_url;
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to create order. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="text-xl font-semibold text-gray-900 mb-4">Your cart is empty</p>
+            <p className="text-gray-600 mb-6">Add products in the shop to start checkout.</p>
+            <Link to="/shop" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,11 +81,15 @@ export default function Checkout() {
 
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Shipping Information */}
               <div className="bg-white rounded-lg border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Shipping Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +162,6 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Payment Information */}
               <div className="bg-white rounded-lg border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <CreditCard className="w-5 h-5 text-gray-600" />
@@ -153,20 +207,19 @@ export default function Checkout() {
 
               <button
                 type="submit"
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                disabled={submitting}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Lock className="w-5 h-5" />
-                Place Order - ${total.toFixed(2)}
+                {submitting ? 'Processing...' : 'Place Order'}
               </button>
             </form>
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
               <div className="space-y-3 mb-4">
-                {cartItems.map(item => (
+                {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span className="text-gray-600">
                       {item.name} × {item.quantity}

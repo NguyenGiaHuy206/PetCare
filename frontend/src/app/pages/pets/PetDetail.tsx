@@ -1,26 +1,56 @@
 import { Link, useParams } from "react-router";
-import { Edit, Calendar, Weight, Pill, Syringe, FileText, Plus, ArrowLeft } from "lucide-react";
+import { Edit, Calendar, Weight, Pill, Syringe, FileText, ArrowLeft, Loader2, PawPrint } from "lucide-react";
+import { useEffect, useState } from "react";
+import { petAPI, PetResponse } from "../../utils/api";
 
 export default function PetDetail() {
   const { id } = useParams();
+  const [pet, setPet] = useState<PetResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const pet = {
-    id: 1,
-    name: "Max",
-    species: "Dog",
-    breed: "Golden Retriever",
-    age: "3 years",
-    birthDate: "2023-01-15",
-    weight: "30 kg",
-    color: "Golden",
-    microchipId: "123456789012345",
-    photo: "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=600",
-  };
+  useEffect(() => {
+    const loadPet = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await petAPI.getById(id);
+        setPet(data);
+      } catch (err: any) {
+        setError(err.response?.data?.detail || "Failed to load pet details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPet();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!pet) {
+    return (
+      <div className="space-y-4">
+        <Link to="/pets" className="inline-flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg">
+          <ArrowLeft className="w-5 h-5" />
+          Back to pets
+        </Link>
+        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-lg">
+          {error || "Pet not found."}
+        </div>
+      </div>
+    );
+  }
 
   const vaccinations = [
     { name: "Rabies", date: "2025-12-10", nextDue: "2026-12-10", status: "Current" },
     { name: "DHPP", date: "2025-11-20", nextDue: "2026-11-20", status: "Current" },
-    { name: "Bordetella", date: "2025-10-05", nextDue: "2026-10-05", status: "Current" },
   ];
 
   const medications = [
@@ -46,9 +76,14 @@ export default function PetDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pet Info Card */}
         <div className="bg-white rounded-lg border p-6">
-          <img src={pet.photo} alt={pet.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+          {pet.photo_url ? (
+            <img src={pet.photo_url} alt={pet.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+          ) : (
+            <div className="w-full h-64 bg-blue-50 rounded-lg mb-4 flex items-center justify-center">
+              <PawPrint className="w-16 h-16 text-blue-300" />
+            </div>
+          )}
           <div className="space-y-3">
             <div>
               <p className="text-sm text-gray-600">Species</p>
@@ -59,26 +94,25 @@ export default function PetDetail() {
               <p className="font-medium text-gray-900">{pet.breed}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Color</p>
-              <p className="font-medium text-gray-900">{pet.color}</p>
+              <p className="text-sm text-gray-600">Age</p>
+              <p className="font-medium text-gray-900">{pet.age || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Birth Date</p>
-              <p className="font-medium text-gray-900">{pet.birthDate}</p>
+              <p className="text-sm text-gray-600">Color</p>
+              <p className="font-medium text-gray-900">{pet.color || 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Weight</p>
-              <p className="font-medium text-gray-900">{pet.weight}</p>
+              <p className="font-medium text-gray-900">{pet.weight ? `${pet.weight} kg` : 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Microchip ID</p>
-              <p className="font-medium text-gray-900 text-sm">{pet.microchipId}</p>
+              <p className="font-medium text-gray-900 text-sm">{pet.microchip_id || 'N/A'}</p>
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          {/* Vaccinations */}
           <div className="bg-white rounded-lg border p-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
@@ -105,7 +139,6 @@ export default function PetDetail() {
             </div>
           </div>
 
-          {/* Medications */}
           <div className="bg-white rounded-lg border p-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
@@ -129,7 +162,6 @@ export default function PetDetail() {
             </div>
           </div>
 
-          {/* Recent Appointments */}
           <div className="bg-white rounded-lg border p-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">

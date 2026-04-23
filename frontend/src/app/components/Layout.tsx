@@ -1,18 +1,39 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { Home, ShoppingBag, Calendar, FileText, Package, ShoppingCart, Receipt, BarChart3, Bell, User, PawPrint, Scissors } from "lucide-react";
-import { useState } from "react";
+import { Home, ShoppingBag, Calendar, FileText, Package, ShoppingCart, Receipt, BarChart3, Bell, User, PawPrint, Scissors, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Layout() {
   const location = useLocation();
-  const [isAuthenticated] = useState(true); // Mock auth state
-  const [userRole] = useState("customer"); // customer or admin
-  const [cartCount] = useState(3);
-  const [notificationCount] = useState(5);
+  const { isAuthenticated, isLoading, logout, user } = useAuth();
+  const [userRole, setUserRole] = useState("customer");
+  const [cartCount, setCartCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
   const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+
+  useEffect(() => {
+    setUserRole(user?.role ?? 'customer');
+  }, [user]);
+
+  useEffect(() => {
+    const loadCartCount = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('petty_cart') || '[]');
+        setCartCount(Array.isArray(cart) ? cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) : 0);
+      } catch {
+        setCartCount(0);
+      }
+    };
+
+    const onCartUpdated = () => loadCartCount();
+    loadCartCount();
+    window.addEventListener('cart-updated', onCartUpdated);
+    return () => window.removeEventListener('cart-updated', onCartUpdated);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,8 +97,15 @@ export default function Layout() {
                   </Link>
                   <Link to="/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100">
                     <User className="w-5 h-5" />
-                    <span className="hidden sm:inline">Profile</span>
+                    <span className="hidden sm:inline">{user?.full_name || 'Profile'}</span>
                   </Link>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
                 </>
               ) : (
                 <>

@@ -1,44 +1,32 @@
 import { Link } from "react-router";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { CartItem, getCart, saveCart } from "../../utils/cart";
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Premium Dog Food",
-      price: 45.99,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200",
-    },
-    {
-      id: 2,
-      name: "Interactive Cat Toy",
-      price: 12.99,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=200",
-    },
-    {
-      id: 3,
-      name: "Comfortable Pet Bed",
-      price: 34.99,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1564510714747-69c3bc1fab41?w=200",
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
+  useEffect(() => {
+    setCartItems(getCart());
+    const onUpdate = () => setCartItems(getCart());
+    window.addEventListener("cart-updated", onUpdate);
+    return () => window.removeEventListener("cart-updated", onUpdate);
+  }, []);
+
+  const updateQuantity = (id: string, delta: number) => {
+    const updated = cartItems.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
     );
+    setCartItems(updated);
+    saveCart(updated);
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+  const removeItem = (id: string) => {
+    const updated = cartItems.filter(item => item.id !== id);
+    setCartItems(updated);
+    saveCart(updated);
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -74,30 +62,27 @@ export default function Cart() {
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map(item => (
               <div key={item.id} className="bg-white rounded-lg border p-4 flex gap-4">
-                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-lg" />
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="w-24 h-24 object-cover rounded-lg" />
+                ) : (
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <ShoppingBag className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-2">{item.name}</h3>
-                  <p className="text-lg font-bold text-gray-900 mb-3">${item.price}</p>
+                  <p className="text-lg font-bold text-gray-900 mb-3">${item.price.toFixed(2)}</p>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-gray-300 rounded-lg">
-                      <button
-                        onClick={() => updateQuantity(item.id, -1)}
-                        className="p-2 hover:bg-gray-100"
-                      >
+                      <button onClick={() => updateQuantity(item.id, -1)} className="p-2 hover:bg-gray-100">
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="px-4 py-2 border-x border-gray-300">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, 1)}
-                        className="p-2 hover:bg-gray-100"
-                      >
+                      <button onClick={() => updateQuantity(item.id, 1)} className="p-2 hover:bg-gray-100">
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    >
+                    <button onClick={() => removeItem(item.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -126,7 +111,7 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                  <span>{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
                 </div>
                 {subtotal < 50 && (
                   <p className="text-sm text-blue-600">

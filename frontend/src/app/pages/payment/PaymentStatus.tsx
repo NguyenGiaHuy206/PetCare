@@ -1,8 +1,10 @@
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { CheckCircle, XCircle, Clock, Home, Receipt } from "lucide-react";
 
 export default function PaymentStatus() {
   const { status } = useParams();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
 
   const getStatusConfig = () => {
     switch (status) {
@@ -13,7 +15,7 @@ export default function PaymentStatus() {
           bgColor: 'bg-green-50',
           title: 'Payment Successful!',
           message: 'Your order has been confirmed and will be processed shortly.',
-          orderId: 'ORD-2026-005',
+          orderId: sessionId ? `Session ${sessionId.slice(0, 8)}` : null,
         };
       case 'pending':
         return {
@@ -69,11 +71,11 @@ export default function PaymentStatus() {
           <div className="space-y-3">
             {status === 'success' && config.orderId && (
               <Link
-                to={`/orders/${config.orderId}`}
+                to="/orders"
                 className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
               >
                 <Receipt className="w-5 h-5" />
-                View Order Details
+                View Orders
               </Link>
             )}
 
