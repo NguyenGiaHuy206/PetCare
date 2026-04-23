@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .venv/
 venv/
 **pycache**/
@@ -15,3 +16,29 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
+=======
+# Repo notes and reports
+/task.md
+/deep-research-report.md
+
+# Frontend local ignores
+/frontend/node_modules/
+/frontend/dist/
+/frontend/coverage/
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development
+/frontend/.env.development.local
+/frontend/.env.production
+/frontend/.env.production.local
+/frontend/.env.test
+/frontend/.env.test.local
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/.DS_Store
+/frontend/Thumbs.db
+/frontend/.vscode/
+/frontend/.idea/
+>>>>>>> 3dfc1d6 (fe with dummy data)
