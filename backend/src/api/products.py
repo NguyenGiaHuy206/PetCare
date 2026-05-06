@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, require_admin
-from src.domain.pet_service import PetService
-from src.persistence.models import User
+from src.persistence.models import ProductKind, User
 from src.persistence.repositories.product_repo import ProductRepository
 from src.schemas import ProductCreate, ProductResponse, ProductUpdate
 
@@ -22,7 +21,14 @@ async def create_product(
     repo = ProductRepository(db)
     try:
         product = await repo.create(
-            request.name, request.price, request.stock, request.description
+            request.name,
+            request.price,
+            request.stock,
+            request.description,
+            request.image_url,
+            request.duration_minutes,
+            request.kind,
+            request.category_id,
         )
         await db.commit()
         return ProductResponse.model_validate(product)
@@ -34,13 +40,16 @@ async def create_product(
 @router.get("", response_model=list[ProductResponse])
 async def get_products(
     search: str = Query(None),
+    kind: ProductKind | None = Query(None),
+    category_id: str | None = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> list[ProductResponse]:
     """Get all products with optional search."""
     repo = ProductRepository(db)
-    products = await repo.get_all(skip, limit, search)
+    parsed_category_id = uuid.UUID(category_id) if category_id else None
+    products = await repo.get_all(skip, limit, search, kind, parsed_category_id)
     return [ProductResponse.model_validate(p) for p in products]
 
 

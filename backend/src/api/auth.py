@@ -1,9 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.api.deps import get_db
-from src.domain.auth_service import AuthService
-from src.schemas import TokenRefresh, TokenResponse, UserLogin, UserRegister, UserResponse
+from src.services.auth_service import AuthService
+from src.persistence.repositories.user_repo import UserRepository
+from src.schemas import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    TokenRefresh,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -46,3 +56,60 @@ async def refresh_token(request: TokenRefresh, db: AsyncSession = Depends(get_db
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Generate a password reset link for a user."""
+    service = AuthService(db)
+    repo = UserRepository(db)
+    user = await repo.get_by_email(request.email)
+
+    if not user:
+        return {"message": "If the email exists, a reset link has been generated."}
+
+    reset_token = service.create_reset_token(user.id)
+    reset_url = f"{settings.frontend_url}/reset-password/{reset_token}"
+    return {
+        "message": "Password reset link generated.",
+        "reset_token": reset_token,
+        "reset_url": reset_url,
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Reset a user's password using a signed reset token."""
+    if request.new_password != request.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+
+    service = AuthService(db)
+    repo = UserRepository(db)
+
+    try:
+        user_id = service.verify_reset_token(request.token)
+        user = await repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        password_hash = service.hash_password(request.new_password)
+        await repo.update(user.id, password_hash=password_hash)
+        await db.commit()
+        return {"message": "Password reset successfully"}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )

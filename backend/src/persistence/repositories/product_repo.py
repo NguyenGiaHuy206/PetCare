@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.persistence.models import Product
+from src.persistence.models import Product, ProductKind
 
 
 class ProductRepository:
@@ -13,7 +13,15 @@ class ProductRepository:
         self.db = db
 
     async def create(
-        self, name: str, price: float, stock: int, description: str | None = None, image_url: str | None = None
+        self,
+        name: str,
+        price: float,
+        stock: int,
+        description: str | None = None,
+        image_url: str | None = None,
+        duration_minutes: int | None = None,
+        kind: ProductKind = ProductKind.SHOP,
+        category_id: uuid.UUID | None = None,
     ) -> Product:
         """Create a new product."""
         product = Product(
@@ -21,7 +29,10 @@ class ProductRepository:
             description=description,
             price=price,
             stock=stock,
+            duration_minutes=duration_minutes,
             image_url=image_url,
+            kind=kind,
+            category_id=category_id,
         )
         self.db.add(product)
         await self.db.flush()
@@ -33,7 +44,12 @@ class ProductRepository:
         return result.scalar_one_or_none()
 
     async def get_all(
-        self, skip: int = 0, limit: int = 20, search: str | None = None
+        self,
+        skip: int = 0,
+        limit: int = 20,
+        search: str | None = None,
+        kind: ProductKind | None = None,
+        category_id: uuid.UUID | None = None,
     ) -> list[Product]:
         """Get all products with optional search and pagination."""
         query = select(Product)
@@ -44,6 +60,10 @@ class ProductRepository:
                     Product.description.ilike(f"%{search}%"),
                 )
             )
+        if kind:
+            query = query.where(Product.kind == kind)
+        if category_id:
+            query = query.where(Product.category_id == category_id)
         query = query.offset(skip).limit(
             limit).order_by(Product.created_at.desc())
         result = await self.db.execute(query)

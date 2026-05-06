@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     stripe_secret_key: str
     stripe_webhook_secret: str
     frontend_url: str = "http://localhost:5173"
+    super_admin_email: str = "admin@petcare.com"
 
     class Config:
         env_file = ".env"

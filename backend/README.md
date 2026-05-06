@@ -57,11 +57,28 @@ src/
     repositories/         # Repository pattern for DB access
     migrations/           # Alembic migrations
   schemas/                # Pydantic models
+    auth.py              # Auth and user schemas
+    pets.py              # Pet schemas
+    bookings.py          # Booking schemas
+    care_logs.py         # Care log schemas
+    storage.py           # Storage schemas
+    products.py          # Product schemas
+    orders.py            # Order and checkout schemas
+    reports.py           # Report schemas
+    __init__.py          # Re-export surface for API imports
   middleware/             # HTTP middleware
     logging.py           # Structured JSON logging
     error_handler.py     # Global error handling
   tasks/                  # Background tasks
     background.py       # Email and image processing tasks
+scripts/                 # Operational and debug utilities
+  db/
+    reset_db.py         # Drops alembic tracking table
+    reset_db_full.py    # Drops enums and all app tables
+  debug/
+    debug_test.py       # End-to-end booking status debug helper
+docs/
+  ARCHITECTURE.md       # Layer boundaries and dependency rules
 tests/
   conftest.py            # Pytest fixtures and configuration
   unit/                  # Unit tests
@@ -97,7 +114,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 3. Install dependencies:
 
 ```bash
-pip install -e .
+pip install -r requirements.txt
 ```
 
 4. Configure environment:
@@ -150,6 +167,26 @@ pytest tests/unit/test_auth.py -v
 # Run with coverage
 pytest tests/ --cov=src
 ```
+
+Architecture details are documented in `docs/ARCHITECTURE.md`.
+
+## Maintenance Scripts
+
+```bash
+# Reset migration tracking only
+python -m scripts.db.reset_db
+
+# Drop all enum types and tables
+python -m scripts.db.reset_db_full
+
+# Debug booking status flow on in-memory DB
+python -m scripts.debug.debug_test
+
+# Seed the first admin account and default categories
+python -m scripts.seed.seed_initial_data
+```
+
+The default seed admin account is `admin@petcare.com` with password `Admin123!`. You can override it with `SUPER_ADMIN_EMAIL`, `SEED_ADMIN_EMAIL`, or `SEED_ADMIN_PASSWORD`.
 
 ## Architecture Decisions
 

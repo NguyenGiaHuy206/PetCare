@@ -53,6 +53,11 @@ class PetRepository:
         result = await self.db.execute(select(Pet).where(Pet.owner_id == owner_id))
         return result.scalars().all()
 
+    async def get_all(self) -> list[Pet]:
+        """Get all pets across users."""
+        result = await self.db.execute(select(Pet).order_by(Pet.created_at.desc()))
+        return result.scalars().all()
+
     async def update(self, pet_id: uuid.UUID, **kwargs) -> Pet | None:
         """Update pet fields."""
         pet = await self.get_by_id(pet_id)

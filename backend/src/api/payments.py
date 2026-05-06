@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.config import settings
 from src.persistence.database import get_db
-from src.domain.order_service import OrderService
+from src.services.order_service import OrderService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["payments"])

@@ -102,7 +102,7 @@ async def test_user_cannot_update_other_user_pet(
 ) -> None:
     """Test that user A cannot update user B's pet."""
     from src.persistence.models import Pet
-    from src.domain.auth_service import AuthService
+    from src.services.auth_service import AuthService
 
     # Create second user
     auth_service = AuthService(test_db)

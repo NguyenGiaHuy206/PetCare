@@ -34,6 +34,13 @@ class UserRepository:
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[User]:
+        """Get all users with pagination."""
+        result = await self.db.execute(
+            select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
+        )
+        return result.scalars().all()
+
     async def update(self, user_id: uuid.UUID, **kwargs) -> User | None:
         """Update user fields."""
         user = await self.get_by_id(str(user_id))

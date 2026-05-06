@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, require_admin
-from src.domain.order_service import OrderService
+from src.services.order_service import OrderService
 from src.persistence.models import User
 from src.schemas import CheckoutResponse, OrderCreate, OrderResponse
 from src.tasks.background import send_order_receipt
@@ -45,9 +45,13 @@ async def get_orders(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[OrderResponse]:
-    """Get all orders for current user."""
+    """Get orders for current user, or all orders for admin."""
     service = OrderService(db)
-    orders = await service.get_user_orders(current_user.id, skip, limit)
+    role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+    if role_value == "admin":
+        orders = await service.get_all_orders(skip, limit)
+    else:
+        orders = await service.get_user_orders(current_user.id, skip, limit)
     return [OrderResponse.model_validate(o) for o in orders]
 
 
@@ -75,7 +79,8 @@ async def get_order(
     service = OrderService(db)
     try:
         order = await service.get(uuid.UUID(order_id))
-        if order.user_id != current_user.id:
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if role_value != "admin" and order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
         return OrderResponse.model_validate(order)
