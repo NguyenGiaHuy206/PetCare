@@ -5,10 +5,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.api import auth, bookings, care_logs, orders, payments, pets, products, reports, storage, users
+from src.api import auth, admin, bookings, carts, care_logs, categories, orders, payments, pets, products, reports, storage, users
 from src.middleware.error_handler import ErrorHandlerMiddleware
 from src.middleware.logging import LoggingMiddleware
 from src.persistence.database import Base, engine
+from src.persistence.models import *  # noqa: F401, F403
 
 logger = logging.getLogger(__name__)
 
@@ -37,17 +38,17 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Add middleware (order matters - add in reverse order of execution)
+    # Add middleware (last added runs outermost).
+    app.add_middleware(ErrorHandlerMiddleware)
+    app.add_middleware(LoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173",
-                       "http://localhost:5174", "http://127.0.0.1:5173"],
+                       "http://localhost:5174", "http://127.0.0.1:5173", "http://localhost:5432", "http://127.0.0.1:5432"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(ErrorHandlerMiddleware)
-    app.add_middleware(LoggingMiddleware)
 
     # Include routers
     app.include_router(auth.router)
@@ -56,9 +57,12 @@ def create_app() -> FastAPI:
     app.include_router(care_logs.router)
     app.include_router(storage.router)
     app.include_router(products.router)
+    app.include_router(categories.router)
+    app.include_router(carts.router)
     app.include_router(orders.router)
     app.include_router(payments.router)
     app.include_router(reports.router)
+    app.include_router(admin.router)
     app.include_router(users.router)
 
     # Health check endpoint

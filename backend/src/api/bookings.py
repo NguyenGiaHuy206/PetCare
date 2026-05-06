@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, require_admin
-from src.domain.booking_service import BookingServiceImpl
+from src.services.booking_service import BookingServiceImpl
 from src.persistence.models import User
 from src.schemas import BookingCreate, BookingResponse, BookingUpdate
 
@@ -44,9 +44,13 @@ async def get_bookings(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[BookingResponse]:
-    """Get all bookings for current user."""
+    """Get bookings for current user or all bookings for admin."""
     service = BookingServiceImpl(db)
-    bookings = await service.get_user_bookings(current_user.id, skip, limit)
+    role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+    if role_value == "admin":
+        bookings = await service.get_all_bookings(skip, limit)
+    else:
+        bookings = await service.get_user_bookings(current_user.id, skip, limit)
     return [BookingResponse.model_validate(b) for b in bookings]
 
 
@@ -74,7 +78,8 @@ async def get_booking(
     service = BookingServiceImpl(db)
     try:
         booking = await service.get(uuid.UUID(booking_id))
-        if booking.user_id != current_user.id:
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if role_value != "admin" and booking.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Not your booking")
         return BookingResponse.model_validate(booking)
@@ -95,7 +100,13 @@ async def update_booking_status(
     try:
         if not request.status:
             raise ValueError("Status is required")
-        booking = await service.update_status(uuid.UUID(booking_id), current_user.id, request.status)
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        booking = await service.update_status(
+            uuid.UUID(booking_id),
+            current_user.id,
+            request.status,
+            is_admin=(role_value == "admin"),
+        )
         return BookingResponse.model_validate(booking)
     except ValueError as e:
         raise HTTPException(
@@ -115,8 +126,14 @@ async def update_booking(
     """Update booking notes."""
     service = BookingServiceImpl(db)
     try:
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
         if request.notes:
-            booking = await service.update_notes(uuid.UUID(booking_id), current_user.id, request.notes)
+            booking = await service.update_notes(
+                uuid.UUID(booking_id),
+                current_user.id,
+                request.notes,
+                is_admin=(role_value == "admin"),
+            )
         else:
             booking = await service.get(uuid.UUID(booking_id))
         return BookingResponse.model_validate(booking)
@@ -137,7 +154,8 @@ async def delete_booking(
     """Delete a booking."""
     service = BookingServiceImpl(db)
     try:
-        await service.delete(uuid.UUID(booking_id), current_user.id)
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        await service.delete(uuid.UUID(booking_id), current_user.id, is_admin=(role_value == "admin"))
         return {"message": "Booking deleted"}
     except ValueError as e:
         raise HTTPException(

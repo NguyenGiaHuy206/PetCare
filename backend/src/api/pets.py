@@ -3,8 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_current_user, get_db
-from src.domain.pet_service import PetService
+from src.api.deps import get_current_user, get_db, require_admin
+from src.services.pet_service import PetService
 from src.persistence.models import User
 from src.schemas import PetCreate, PetResponse, PetUpdate
 
@@ -48,18 +48,38 @@ async def create_pet(
 
 @router.get("", response_model=list[PetResponse])
 async def get_pets(
+    owner_id: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[PetResponse]:
-    """Get all pets for current user."""
+    """Get pets for current user, or all/owner-filtered for admin."""
     service = PetService(db)
     try:
-        pets = await service.get_owner_pets(current_user.id)
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if role_value == "admin":
+            if owner_id:
+                pets = await service.get_owner_pets(uuid.UUID(owner_id))
+            else:
+                pets = await service.get_all_pets()
+        else:
+            pets = await service.get_owner_pets(current_user.id)
         return [PetResponse.model_validate(p) for p in pets]
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch pets: {str(e)}")
+
+
+@router.get("/admin/all", response_model=list[PetResponse])
+async def get_all_pets_admin(
+    owner_id: str | None = Query(None),
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[PetResponse]:
+    """Get all pets for admin tools."""
+    service = PetService(db)
+    pets = await service.get_owner_pets(uuid.UUID(owner_id)) if owner_id else await service.get_all_pets()
+    return [PetResponse.model_validate(p) for p in pets]
 
 
 @router.get("/{pet_id}", response_model=PetResponse)
@@ -80,8 +100,8 @@ async def get_pet(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch pet: {str(e)}")
 
-    # Check ownership outside the try/except so HTTPException propagates correctly
-    if pet.owner_id != current_user.id:
+    role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+    if role_value != "admin" and pet.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not your pet")
 
@@ -122,7 +142,8 @@ async def delete_pet(
     """Delete a pet."""
     service = PetService(db)
     try:
-        await service.delete(uuid.UUID(pet_id), current_user.id)
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        await service.delete(uuid.UUID(pet_id), current_user.id, is_admin=(role_value == "admin"))
         return {"message": "Pet deleted"}
     except ValueError as e:
         raise HTTPException(

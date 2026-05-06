@@ -1,4 +1,4 @@
-from src.domain.auth_service import AuthService
+from src.services.auth_service import AuthService
 from src.persistence.models import User, UserRole
 from src.persistence.database import Base
 from src.main import create_app

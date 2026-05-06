@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, require_admin
-from src.domain.report_service import ReportService
+from src.services.report_service import ReportService
 from src.persistence.models import User
 from src.schemas import BookingReportResponse, RevenueReportResponse
 

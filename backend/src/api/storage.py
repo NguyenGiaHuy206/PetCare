@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.deps import get_current_user
-from src.domain.storage_service import StorageService
+from src.services.storage_service import StorageService
 from src.persistence.models import User
 from src.schemas import ConfirmUploadRequest, PresignedUrlResponse
 

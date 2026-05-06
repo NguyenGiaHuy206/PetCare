@@ -16,7 +16,16 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # set sqlalchemy.url from config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+def to_sync_url(url: str) -> str:
+    """Convert async SQLAlchemy URLs to sync URLs for Alembic migrations."""
+    if url.startswith("postgresql+asyncpg://"):
+        return url.replace("postgresql+asyncpg://", "postgresql+psycopg2://", 1)
+    if url.startswith("sqlite+aiosqlite://"):
+        return url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+    return url
+
+
+config.set_main_option("sqlalchemy.url", to_sync_url(settings.database_url))
 
 # add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata

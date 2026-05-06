@@ -29,11 +29,4 @@ npm run dev
 npm run build
 ```
 
-## Replace API later
-
-When your backend is ready, replace placeholder methods in:
-
-- `src/app/utils/api.ts`
-
-Keep the current export names (`authAPI`, `petAPI`, `serviceAPI`, etc.) to avoid changing UI code.
   
