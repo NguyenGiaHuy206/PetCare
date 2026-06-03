@@ -1,39 +1,92 @@
+# PetCare Frontend
 
-# PetCare Frontend (UI Only)
+React/Vite frontend for PetCare. The app talks to the FastAPI backend for authentication, pets, services, bookings, care logs, shop products, cart checkout, orders, reports, notifications, image uploads, GHN shipping data, and VNPAY/COD payment flows.
 
-This frontend is applied from the Untitled design template and is currently configured as UI-only.
+## Tech Stack
 
-## What this means
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+- Lucide icons
+- Nginx production container
 
-- Pages, layouts, navigation, and components are ready.
-- Most screens use local/mock UI data directly in page components.
-- The API module is a placeholder and does not call any real backend yet.
+## Environment
 
-## Run locally
+Create a local env file when running outside Docker:
 
-1. Install dependencies:
+```bash
+cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Variables:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_SUPER_ADMIN_EMAIL=admin@petcare.com
+```
+
+For Docker builds, these values are passed as build args from the root `docker-compose.yml`.
+
+## Run With Docker
+
+From the repository root:
+
+```bash
+docker compose up -d --build frontend
+```
+
+Open:
+
+- App: http://localhost:5173
+
+The production Docker image builds static assets with Vite and serves them through Nginx.
+
+## Run Locally
 
 ```bash
 npm install
-```
-
-2. Start development server:
-
-```bash
 npm run dev
 ```
 
-3. Build for production:
+The dev server uses `VITE_API_BASE_URL` to reach the backend.
+
+## Build
 
 ```bash
 npm run build
 ```
 
-## Replace API later
+The build output is written to `dist/`.
 
-When your backend is ready, replace placeholder methods in:
+## Project Layout
 
-- `src/app/utils/api.ts`
+```text
+src/
+  App.tsx
+  main.tsx
+  routes.tsx
+  components/          Shared UI and app components
+  contexts/            Auth context
+  layouts/             App layout and navigation
+  pages/               Route pages
+  services/            API clients and shared types
+  styles/              Global styles and theme fixes
+  utils/               Formatting, image, error, and export helpers
+```
 
-Keep the current export names (`authAPI`, `petAPI`, `serviceAPI`, etc.) to avoid changing UI code.
-  
+## Notes
+
+- Admin users default to the reports page.
+- Product orders and service orders are displayed separately.
+- Users can pay VNPAY orders during checkout/booking or later from their order page.
+- Admins manage fulfillment/service status but do not use `Pay now`.
+- Checkout address province/district/ward options come from GHN APIs through the backend.

@@ -1,24 +1,81 @@
-# Repo notes and reports
+# Local notes and generated reports
 /task.md
 /deep-research-report.md
 
-# Frontend local ignores
-/frontend/node_modules/
-/frontend/dist/
-/frontend/coverage/
-/frontend/.env
-/frontend/.env.local
-/frontend/.env.development
-/frontend/.env.development.local
-/frontend/.env.production
-/frontend/.env.production.local
-/frontend/.env.test
-/frontend/.env.test.local
-/frontend/npm-debug.log*
-/frontend/yarn-debug.log*
-/frontend/yarn-error.log*
-/frontend/pnpm-debug.log*
-/frontend/.DS_Store
-/frontend/Thumbs.db
-/frontend/.vscode/
-/frontend/.idea/
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.development.local
+frontend/.env.production
+frontend/.env.production.local
+frontend/.env.test
+frontend/.env.test.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+build/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Node and frontend builds
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.next/
+coverage/
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Databases and local storage
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+
+# Logs and runtime output
+*.log
+logs/
+tmp/
+temp/
+
+# Docker
+docker-compose.override.yml
+
+# Cloud credentials
+.aws/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tooling
+.claude/

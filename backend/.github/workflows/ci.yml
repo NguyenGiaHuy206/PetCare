@@ -1,0 +1,86 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -e .
+      - name: Lint with ruff
+        run: |
+          cd backend
+          ruff check src tests
+      - name: Type check with mypy
+        run: |
+          cd backend
+          mypy src || true
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_petcare
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -e .
+      - name: Create .env for tests
+        run: |
+          cd backend
+          cat > .env << EOF
+          DATABASE_URL=postgresql+asyncpg://test_user:test_password@localhost:5432/test_petcare
+          JWT_SECRET=test_secret_key
+          JWT_ACCESS_EXPIRE_MINUTES=15
+          JWT_REFRESH_EXPIRE_DAYS=7
+          S3_BUCKET=test-bucket
+          S3_REGION=ap-southeast-1
+          AWS_ACCESS_KEY_ID=test_key
+          AWS_SECRET_ACCESS_KEY=test_secret
+          STRIPE_SECRET_KEY=sk_test_123
+          STRIPE_WEBHOOK_SECRET=whsec_test_123
+          EOF
+      - name: Run tests
+        run: |
+          cd backend
+          pytest tests/ -v --cov=src
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
