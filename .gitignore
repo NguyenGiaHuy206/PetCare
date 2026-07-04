@@ -7,14 +7,6 @@
 .env.local
 .env.*.local
 backend/.env
-frontend/.env
-frontend/.env.local
-frontend/.env.development
-frontend/.env.development.local
-frontend/.env.production
-frontend/.env.production.local
-frontend/.env.test
-frontend/.env.test.local
 
 # Python
 __pycache__/
@@ -79,6 +71,7 @@ Thumbs.db
 
 # Tooling
 .claude/
-docs
+docs/
+backend/docs/
 scripts
 .agents
