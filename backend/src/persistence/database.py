@@ -14,7 +14,7 @@ _session_factory = None
 def get_engine():
     global _engine
     if _engine is None:
-        from src.config import settings
+        from src.settings import settings
         _engine = create_async_engine(
             settings.database_url,
             echo=False,

@@ -14,8 +14,6 @@ const apiClient: AxiosInstance = axios.create({
 const publicAuthPaths = [
   "/auth/login",
   "/auth/register",
-  "/auth/verify-email",
-  "/auth/resend-verification",
   "/auth/forgot-password",
   "/auth/reset-password",
 ];

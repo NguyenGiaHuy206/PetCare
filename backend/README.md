@@ -1,6 +1,6 @@
 # PetCare Backend
 
-FastAPI backend for PetCare. It provides authentication, pets, bookings, care logs, products, cart checkout, orders, reports, notifications, S3 uploads, GHN shipping support, SMTP email verification, and VNPAY payment return handling.
+FastAPI backend for PetCare. It provides authentication, pets, bookings, care logs, products, cart checkout, orders, reports, in-app notifications, S3 uploads, GHN shipping support, and VNPAY payment return handling.
 
 ## Tech Stack
 
@@ -10,7 +10,6 @@ FastAPI backend for PetCare. It provides authentication, pets, bookings, care lo
 - Alembic migrations
 - JWT auth with refresh tokens
 - AWS S3 presigned uploads
-- SMTP email verification and notifications
 - GHN shipping APIs
 - VNPAY payment URLs and signed return verification
 
@@ -27,12 +26,10 @@ src/
     migrations/           Alembic environment and revisions
     models/               ORM models
     repositories/         Database access helpers
+    scripts/              Database maintenance and seed helpers
   schemas/                Pydantic request/response models
   services/               Business logic and integrations
   tasks/                  Background-task helpers
-scripts/
-  seed/                   Initial admin/category seed
-  db/                     Local database reset helpers
 tests/                    Unit and integration tests
 ```
 
@@ -57,11 +54,6 @@ DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/petcare
 JWT_SECRET=change-me
 FRONTEND_URL=http://localhost:5173
 
-SMTP_HOST=mailpit
-SMTP_PORT=1025
-SMTP_FROM_EMAIL=no-reply@petty.local
-SMTP_USE_TLS=false
-
 GHN_API_URL=https://dev-online-gateway.ghn.vn/shiip/public-api
 GHN_TOKEN=your-ghn-token
 GHN_SHOP_ID=your-shop-id
@@ -77,7 +69,7 @@ AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 ```
 
-When running through the root `docker-compose.yml`, the compose file overrides `DATABASE_URL` to use the `db` service and points SMTP to Mailpit.
+When running through the root `docker-compose.yml`, the compose file overrides `DATABASE_URL` to use the `db` service.
 
 ## Run With Docker
 
@@ -91,7 +83,7 @@ The backend container runs:
 
 ```bash
 alembic upgrade head
-python -m scripts.seed.seed_initial_data
+python -m src.persistence.scripts.seed_initial_data
 uvicorn src.main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -108,7 +100,7 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 alembic upgrade head
-python -m scripts.seed.seed_initial_data
+python -m src.persistence.scripts.seed_initial_data
 uvicorn src.main:app --reload
 ```
 
@@ -150,7 +142,7 @@ Default local admin:
 Override with:
 
 ```env
-SUPER_ADMIN_EMAIL=admin@example.com
+ADMIN_EMAIL=admin@example.com
 SEED_ADMIN_PASSWORD=change-this
 ```
 
@@ -159,5 +151,5 @@ SEED_ADMIN_PASSWORD=change-this
 - Payment state and fulfillment stage are separate. VNPAY success sets `payment_status=paid`; admin changes order `status` to `shipped` or `delivered`.
 - COD orders use `payment_status=cod_pending`.
 - Service bookings create service orders but service progress is represented differently in the frontend.
-- Email verification and notifications use SMTP. In Docker, local emails are visible in Mailpit at http://localhost:8025.
+- Notifications are stored in the app and are not sent by email.
 - S3 uploads use presigned URLs; uploaded image display can be proxied by the backend storage endpoint.

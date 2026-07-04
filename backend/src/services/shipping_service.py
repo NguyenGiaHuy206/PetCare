@@ -3,7 +3,7 @@ import uuid
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
+from src.settings import settings
 from src.persistence.repositories.cart_repo import CartRepository
 from src.persistence.repositories.product_repo import ProductRepository
 

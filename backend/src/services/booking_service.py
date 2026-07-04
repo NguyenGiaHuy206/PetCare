@@ -140,7 +140,6 @@ class BookingServiceImpl:
                 "booking",
                 "Booking confirmed",
                 f"Your {booking.service} booking has been confirmed.",
-                send_email=True,
             )
         await self.db.commit()
         return updated

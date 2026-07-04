@@ -1,15 +1,13 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-import secrets
 
 import bcrypt
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
+from src.settings import settings
 from src.persistence.models import User
 from src.persistence.repositories.user_repo import UserRepository
-from src.services.email_service import EmailService
 
 
 class AuthService:
@@ -43,7 +41,6 @@ class AuthService:
         if existing:
             raise ValueError("Email already registered")
 
-        verification_code = self.create_verification_code()
         password_hash = self.hash_password(password)
         user = await self.repo.create(
             email=email,
@@ -51,13 +48,12 @@ class AuthService:
             full_name=full_name,
             phone=phone,
             address=address,
-            is_email_verified=False,
-            email_verification_code_hash=self.hash_password(verification_code),
-            email_verification_expires_at=datetime.now(timezone.utc) + timedelta(minutes=15),
+            is_email_verified=True,
+            email_verification_code_hash=None,
+            email_verification_expires_at=None,
         )
         await self.db.commit()
         await self.db.refresh(user)
-        await EmailService().send_verification_code(email, verification_code)
         return user
 
     async def login(self, email: str, password: str) -> User:
@@ -65,47 +61,7 @@ class AuthService:
         user = await self.repo.get_by_email(email)
         if not user or not self.verify_password(password, user.password_hash):
             raise ValueError("Invalid email or password")
-        if not user.is_email_verified:
-            raise ValueError("Please verify your email before logging in")
         return user
-
-    def create_verification_code(self) -> str:
-        return f"{secrets.randbelow(1_000_000):06d}"
-
-    async def verify_email(self, email: str, code: str) -> User:
-        user = await self.repo.get_by_email(email)
-        if not user:
-            raise ValueError("User not found")
-        if user.is_email_verified:
-            return user
-        if not user.email_verification_code_hash or not user.email_verification_expires_at:
-            raise ValueError("Verification code not found")
-        expires_at = user.email_verification_expires_at
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        if expires_at < datetime.now(timezone.utc):
-            raise ValueError("Verification code expired")
-        if not self.verify_password(code, user.email_verification_code_hash):
-            raise ValueError("Invalid verification code")
-        updated = await self.repo.update(
-            user.id,
-            is_email_verified=True,
-            email_verification_code_hash=None,
-            email_verification_expires_at=None,
-        )
-        return updated
-
-    async def resend_verification(self, email: str) -> None:
-        user = await self.repo.get_by_email(email)
-        if not user or user.is_email_verified:
-            return
-        code = self.create_verification_code()
-        await self.repo.update(
-            user.id,
-            email_verification_code_hash=self.hash_password(code),
-            email_verification_expires_at=datetime.now(timezone.utc) + timedelta(minutes=15),
-        )
-        await EmailService().send_verification_code(email, code)
 
     def create_access_token(self, user_id: uuid.UUID) -> str:
         """Create a JWT access token."""

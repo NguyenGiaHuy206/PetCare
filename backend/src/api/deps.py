@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, Header, status
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.config import settings
+from src.settings import settings
 from src.persistence.database import get_db
 from src.persistence.models import User
 from src.persistence.repositories.user_repo import UserRepository

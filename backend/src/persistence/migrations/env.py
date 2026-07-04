@@ -5,10 +5,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from src.config import settings
+from src.settings import settings
 from src.persistence.database import Base
 
-# this is the Alembic Config object
 config = context.config
 
 # Interpret the config file for Python logging.
@@ -27,7 +26,6 @@ def to_sync_url(url: str) -> str:
 
 config.set_main_option("sqlalchemy.url", to_sync_url(settings.database_url))
 
-# add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata
 
 

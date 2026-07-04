@@ -31,7 +31,6 @@ Variables:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
-VITE_SUPER_ADMIN_EMAIL=admin@petcare.com
 ```
 
 For Docker builds, these values are passed as build args from the root `docker-compose.yml`.

@@ -1,13 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, require_admin
 from src.services.order_service import OrderService
 from src.persistence.models import User
 from src.schemas import CheckoutResponse, OrderCreate, OrderResponse, OrderStatusUpdate
-from src.tasks.background import send_order_receipt
 from src.services.vnpay_service import VnpayService
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -17,7 +16,6 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 async def create_order(
     request: OrderCreate,
     http_request: Request,
-    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CheckoutResponse:
@@ -38,10 +36,6 @@ async def create_order(
             checkout_url = VnpayService().create_payment_url(order, client_ip, source="cart")
         else:
             checkout_url = service.checkout_url_for(order, source="cart")
-
-        # Send receipt email in background (using user ID as we don't have email property)
-        background_tasks.add_task(
-            send_order_receipt, str(current_user.id), str(order.id))
 
         return CheckoutResponse(order_id=order.id, checkout_url=checkout_url)
     except ValueError as e:

@@ -33,7 +33,7 @@ export default function PaymentStatus() {
           iconColor: 'text-yellow-600',
           bgColor: 'bg-yellow-50',
           title: 'Payment Pending',
-          message: 'Your payment is being processed. You will receive a confirmation email once completed.',
+          message: 'Your payment is being processed. Check your order status for updates.',
           orderId,
         };
       case 'failed':
@@ -110,7 +110,7 @@ export default function PaymentStatus() {
           {status === 'success' && (
             <div className="mt-6 pt-6 border-t">
               <p className="text-sm text-gray-600">
-                A confirmation email has been sent to your registered email address.
+                You can review the latest status from your account.
               </p>
             </div>
           )}

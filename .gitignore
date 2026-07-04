@@ -79,3 +79,6 @@ Thumbs.db
 
 # Tooling
 .claude/
+docs
+scripts
+.agents

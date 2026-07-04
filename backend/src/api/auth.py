@@ -1,20 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
+from src.settings import settings
 from src.api.deps import get_db
 from src.services.auth_service import AuthService
 from src.persistence.repositories.user_repo import UserRepository
 from src.schemas import (
     ForgotPasswordRequest,
-    ResendVerificationRequest,
     ResetPasswordRequest,
     TokenRefresh,
     TokenResponse,
     UserLogin,
     UserRegister,
     UserResponse,
-    VerifyEmailRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -49,23 +47,6 @@ async def login(request: UserLogin, db: AsyncSession = Depends(get_db)) -> Token
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-
-
-@router.post("/verify-email", response_model=UserResponse)
-async def verify_email(request: VerifyEmailRequest, db: AsyncSession = Depends(get_db)) -> UserResponse:
-    service = AuthService(db)
-    try:
-        user = await service.verify_email(request.email, request.code)
-        return UserResponse.model_validate(user)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
-
-@router.post("/resend-verification")
-async def resend_verification(request: ResendVerificationRequest, db: AsyncSession = Depends(get_db)) -> dict:
-    service = AuthService(db)
-    await service.resend_verification(request.email)
-    return {"message": "If the account exists, a verification code has been sent."}
 
 
 @router.post("/refresh", response_model=TokenResponse)

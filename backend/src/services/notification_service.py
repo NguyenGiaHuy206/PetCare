@@ -6,29 +6,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.persistence.models import Booking, BookingStatus, Notification, User, UserRole
-from src.services.email_service import EmailService
 
 
 class NotificationService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    async def create(self, user_id: uuid.UUID, type_: str, title: str, message: str, send_email: bool = False) -> Notification:
+    async def create(self, user_id: uuid.UUID, type_: str, title: str, message: str) -> Notification:
         notification = Notification(user_id=user_id, type=type_, title=title, message=message)
         self.db.add(notification)
         await self.db.flush()
-        if send_email:
-            user = await self.db.get(User, user_id)
-            if user:
-                await EmailService().send_notification(user.email, title, message)
         return notification
 
-    async def create_for_admins(self, type_: str, title: str, message: str, send_email: bool = False) -> list[Notification]:
+    async def create_for_admins(self, type_: str, title: str, message: str) -> list[Notification]:
         result = await self.db.execute(select(User).where(User.role == UserRole.ADMIN))
         admins = result.scalars().all()
         notifications = []
         for admin in admins:
-            notifications.append(await self.create(admin.id, type_, title, message, send_email=send_email))
+            notifications.append(await self.create(admin.id, type_, title, message))
         return notifications
 
     async def list_for_user(self, user_id: uuid.UUID, skip: int = 0, limit: int = 100) -> list[Notification]:
@@ -72,7 +67,6 @@ class NotificationService:
                 "reminder",
                 "Booking reminder",
                 message,
-                send_email=True,
             )
 
     async def mark_read(self, notification_id: uuid.UUID, user_id: uuid.UUID) -> Notification | None:

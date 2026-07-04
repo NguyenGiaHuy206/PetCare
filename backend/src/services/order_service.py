@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
+from src.settings import settings
 from src.persistence.models import Order, OrderItem, OrderStatus
 from src.persistence.repositories.order_repo import OrderRepository
 from src.persistence.repositories.product_repo import ProductRepository
@@ -118,7 +118,6 @@ class OrderService:
             "order",
             "Order confirmed",
             f"Your order #{str(order.id)[:8].upper()} has been paid and confirmed.",
-            send_email=True,
         )
         await self.db.commit()
         return order

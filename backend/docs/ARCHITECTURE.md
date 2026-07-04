@@ -24,7 +24,7 @@ The domain layer should not depend on FastAPI.
 
 - App server: src.main:app
 - Migrations: alembic.ini with script location src/persistence/migrations
-- Utility scripts: scripts/ directory via python -m scripts....
+- Utility scripts: src/persistence/scripts via python -m src.persistence.scripts....
 
 ## Layout Goals
 

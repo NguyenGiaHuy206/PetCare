@@ -52,7 +52,6 @@ class CareLogService:
             "carelog",
             "Care log updated",
             f"A new {activity} care log was added for {pet.name}.",
-            send_email=True,
         )
         await self.db.commit()
         await self.db.refresh(log)
@@ -105,7 +104,6 @@ class CareLogService:
             "carelog",
             "Care log updated",
             "A care log for your pet was updated.",
-            send_email=True,
         )
         await self.db.commit()
         await self.db.refresh(updated)

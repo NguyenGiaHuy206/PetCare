@@ -1,13 +1,13 @@
 # PetCare
 
-PetCare is a full-stack pet care and commerce app. It includes pet profiles, service bookings, care logs, shop products, cart checkout, order management, notifications, reports, S3 image upload, GHN shipping quotes, SMTP email verification, and VNPAY/COD payments.
+PetCare is a full-stack pet care and commerce app. It includes pet profiles, service bookings, care logs, shop products, cart checkout, order management, in-app notifications, reports, S3 image upload, GHN shipping quotes, and VNPAY/COD payments.
 
 ## Stack
 
 - Frontend: React, Vite, TypeScript, Tailwind CSS, Nginx container
 - Backend: FastAPI, SQLAlchemy async ORM, Alembic, PostgreSQL
-- Local services: PostgreSQL, Mailpit
-- Integrations: AWS S3, GHN, VNPAY, SMTP
+- Local services: PostgreSQL
+- Integrations: AWS S3, GHN, VNPAY
 
 ## Quick Start With Docker
 
@@ -48,7 +48,6 @@ docker compose up -d --build
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 - API docs: http://localhost:8000/docs
-- Mailpit: http://localhost:8025
 
 The backend container runs Alembic migrations and seeds the initial admin account on startup.
 
@@ -57,7 +56,7 @@ Default local admin:
 - Email: `admin@petcare.com`
 - Password: `Admin123!`
 
-Override it with `SEED_ADMIN_PASSWORD` and `SUPER_ADMIN_EMAIL`.
+Override it with `SEED_ADMIN_PASSWORD` and `ADMIN_EMAIL`.
 
 ## Common Commands
 

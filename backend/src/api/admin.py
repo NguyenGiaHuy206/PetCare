@@ -3,7 +3,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, require_admin
-from src.config import settings
 from src.persistence.models import User, UserRole
 from src.persistence.repositories.user_repo import UserRepository
 from src.schemas import UserResponse, UserRoleUpdate
@@ -35,20 +34,8 @@ async def update_user_role(
 
     if request.role not in {UserRole.ADMIN.value, UserRole.USER.value}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role")
-    if request.role == UserRole.ADMIN.value:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Promoting users is disabled")
-
-    super_admin_email = settings.super_admin_email.lower()
-    is_super_admin = admin.email.lower() == super_admin_email
-
-    if request.role == UserRole.USER.value:
-        if not is_super_admin:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Super admin required to demote")
-        if admin.id == user.id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot demote yourself")
-
-    if user.email.lower() == super_admin_email and request.role != UserRole.ADMIN.value:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot demote super admin")
+    if admin.id == user.id and request.role != UserRole.ADMIN.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot demote yourself")
 
     updated = await repo.update(user.id, role=request.role)
     await db.commit()
@@ -67,9 +54,6 @@ async def delete_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    super_admin_email = settings.super_admin_email.lower()
-    if user.email.lower() == super_admin_email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete super admin")
     if user.id == admin.id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete yourself")
 

@@ -13,8 +13,6 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
-  const superAdminEmail = (import.meta.env.VITE_SUPER_ADMIN_EMAIL ?? "admin@petcare.com").toLowerCase();
-  const isSuperAdmin = user?.email?.toLowerCase() === superAdminEmail;
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -32,16 +30,24 @@ export default function AdminUsers() {
     loadUsers();
   }, []);
 
-  const handleDemote = async (userId: string) => {
-    if (!window.confirm("Demote this admin to user?")) {
+  const handleRoleChange = async (target: UserResponse, role: "admin" | "user") => {
+    if (target.id === user?.id && role === "user") {
+      setError("You cannot demote yourself.");
+      return;
+    }
+    const action = role === "admin" ? "promote" : "demote";
+    if (!window.confirm(`${action === "promote" ? "Promote" : "Demote"} ${target.email}?`)) {
       return;
     }
     try {
-      setUpdatingUserId(userId);
-      const updated = await adminAPI.updateUserRole(userId, "user");
+      setUpdatingUserId(target.id);
+      const updated = await adminAPI.updateUserRole(target.id, role);
       setUsers((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      toast.success(`User ${action}d.`);
     } catch (err: unknown) {
-      setError(getApiErrorMessage(err, "Failed to demote user."));
+      const message = getApiErrorMessage(err, `Failed to ${action} user.`);
+      setError(message);
+      toast.error(message);
     } finally {
       setUpdatingUserId(null);
     }
@@ -50,10 +56,6 @@ export default function AdminUsers() {
   const handleDelete = async (target: UserResponse) => {
     if (target.id === user?.id) {
       setError("You cannot delete yourself.");
-      return;
-    }
-    if (target.email.toLowerCase() === superAdminEmail) {
-      setError("Cannot delete super admin.");
       return;
     }
     if (!window.confirm(`Delete account ${target.email}? This cannot be undone.`)) {
@@ -134,10 +136,19 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4 text-sm text-right">
                     <div className="flex justify-end gap-2">
-                      {account.role === "admin" && isSuperAdmin && account.email.toLowerCase() !== superAdminEmail ? (
+                      {account.role === "user" ? (
                         <button
                           type="button"
-                          onClick={() => handleDemote(account.id)}
+                          onClick={() => handleRoleChange(account, "admin")}
+                          disabled={updatingUserId === account.id}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          Promote
+                        </button>
+                      ) : account.id !== user?.id ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRoleChange(account, "user")}
                           disabled={updatingUserId === account.id}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
@@ -146,7 +157,7 @@ export default function AdminUsers() {
                       ) : (
                         <span className="text-xs text-gray-500 self-center capitalize">{account.role}</span>
                       )}
-                      {account.email.toLowerCase() !== superAdminEmail && account.id !== user?.id && (
+                      {account.id !== user?.id && (
                         <button
                           type="button"
                           onClick={() => handleDelete(account)}

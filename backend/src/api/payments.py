@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.config import settings
+from src.settings import settings
 from src.persistence.database import get_db
 from src.services.order_service import OrderService
 from src.services.vnpay_service import VnpayService

@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import boto3
 from botocore.config import Config
 
-from src.config import settings
+from src.settings import settings
 
 
 class StorageService:

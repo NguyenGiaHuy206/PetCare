@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from urllib.parse import quote_plus, urlencode
 
-from src.config import settings
+from src.settings import settings
 from src.persistence.models import Order
 
 

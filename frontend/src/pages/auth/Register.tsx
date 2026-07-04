@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, User, PawPrint } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { authAPI } from "../../services/auth";
 import { getApiErrorMessage } from "../../utils/errors";
 import { useToast } from "../../components/ToastProvider";
 
@@ -14,8 +13,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [pendingVerification, setPendingVerification] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,42 +28,10 @@ export default function Register() {
 
     try {
       await register(email, password, fullName);
-      setPendingVerification(true);
-      toast.success("Verification code sent to your email.");
-    } catch (err: any) {
-      const message = getApiErrorMessage(err, "Failed to create account. Please try again.");
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      await authAPI.verifyEmail(email, verificationCode);
-      toast.success("Email verified. You can sign in now.");
+      toast.success("Account created successfully. Please sign in.");
       navigate("/login");
     } catch (err: any) {
-      const message = getApiErrorMessage(err, "Failed to verify email.");
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      await authAPI.resendVerification(email);
-      toast.info("A new verification code has been sent.");
-    } catch (err: any) {
-      const message = getApiErrorMessage(err, "Failed to resend verification code.");
+      const message = getApiErrorMessage(err, "Failed to create account. Please try again.");
       setError(message);
       toast.error(message);
     } finally {
@@ -85,47 +50,6 @@ export default function Register() {
           <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
           <p className="mt-2 text-gray-600">Join our pet care community</p>
         </div>
-        {pendingVerification ? (
-          <form onSubmit={handleVerify} className="mt-8 space-y-6 bg-white p-8 rounded-lg border">
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-            <div>
-              <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700 mb-1">
-                Email verification code
-              </label>
-              <input
-                id="verification-code"
-                type="text"
-                inputMode="numeric"
-                required
-                minLength={6}
-                maxLength={6}
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="123456"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
-            >
-              {loading ? "Verifying..." : "Verify email"}
-            </button>
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-            >
-              Resend code
-            </button>
-          </form>
-        ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-8 rounded-lg border">
           {error && (
             <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
@@ -246,7 +170,6 @@ export default function Register() {
             </button>
           </div>
         </form>
-        )}
 
         <p className="text-center text-sm text-gray-600">
           Already have an account?{' '}

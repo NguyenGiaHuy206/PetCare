@@ -12,10 +12,6 @@ export const authAPI = {
     apiClient.post("/auth/forgot-password", { email }).then((res) => res.data),
   resetPassword: (token: string, new_password: string, confirm_password: string): Promise<{ message: string }> =>
     apiClient.post("/auth/reset-password", { token, new_password, confirm_password }).then((res) => res.data),
-  verifyEmail: (email: string, code: string): Promise<UserResponse> =>
-    apiClient.post("/auth/verify-email", { email, code }).then((res) => res.data),
-  resendVerification: (email: string): Promise<{ message: string }> =>
-    apiClient.post("/auth/resend-verification", { email }).then((res) => res.data),
 };
 
 export type { TokenResponse, UserResponse };

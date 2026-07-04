@@ -2,7 +2,6 @@ from src.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
     ForgotPasswordRequest,
-    ResendVerificationRequest,
     TokenRefresh,
     TokenResponse,
     ResetPasswordRequest,
@@ -12,7 +11,6 @@ from src.schemas.auth import (
     UserResponse,
     UserRoleUpdate,
     UserUpdate,
-    VerifyEmailRequest,
 )
 from src.schemas.categories import CategoryCreate, CategoryResponse, CategoryUpdate
 from src.schemas.bookings import BookingCreate, BookingResponse, BookingUpdate
@@ -36,7 +34,6 @@ __all__ = [
     "ChangePasswordRequest",
     "DeleteAccountRequest",
     "ForgotPasswordRequest",
-    "ResendVerificationRequest",
     "ResetPasswordRequest",
     "UserBase",
     "UserRegister",
@@ -44,7 +41,6 @@ __all__ = [
     "UserResponse",
     "UserRoleUpdate",
     "UserUpdate",
-    "VerifyEmailRequest",
     "TokenResponse",
     "TokenRefresh",
     "CategoryCreate",
