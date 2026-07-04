@@ -1,0 +1,26 @@
+@startuml
+title SEQ-01 - Đăng ký / Đăng nhập
+actor "Người dùng" as User
+boundary "Giao diện" as UI
+control "Hệ thống" as System
+control "Authentication" as Auth
+database "Cơ sở dữ liệu" as DB
+User -> UI : Chọn Đăng ký hoặc Đăng nhập
+UI -> System : Gửi thông tin tài khoản
+System -> Auth : Kiểm tra định dạng và chính sách bảo mật
+Auth -> DB : Tra cứu email/tài khoản
+DB --> Auth : Thông tin tài khoản nếu có
+alt Đăng ký
+  Auth -> Auth : Kiểm tra email chưa tồn tại
+  Auth -> Auth : Mã hóa mật khẩu
+  Auth -> DB : Lưu tài khoản mới
+  DB --> Auth : Lưu thành công
+  Auth --> System : Đăng ký thành công
+else Đăng nhập
+  Auth -> Auth : Xác thực mật khẩu
+  Auth -> Auth : Tạo token và xác định vai trò
+  Auth --> System : Token/Role hoặc lỗi
+end
+System --> UI : Kết quả xử lý
+UI --> User : Thông báo hoặc chuyển trang
+@enduml

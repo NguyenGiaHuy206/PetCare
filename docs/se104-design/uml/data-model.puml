@@ -1,0 +1,27 @@
+@startuml
+title Mô hình dữ liệu mức khái niệm
+entity users
+entity pets
+entity products
+entity categories
+entity bookings
+entity care_logs
+entity carts
+entity cart_items
+entity orders
+entity order_items
+entity notifications
+users ||--o{ pets
+users ||--o{ bookings
+users ||--o{ care_logs
+users ||--o{ orders
+users ||--o{ notifications
+users ||--|| carts
+pets ||--o{ bookings
+pets ||--o{ care_logs
+categories ||--o{ products
+carts ||--o{ cart_items
+products ||--o{ cart_items
+orders ||--o{ order_items
+products ||--o{ order_items
+@enduml

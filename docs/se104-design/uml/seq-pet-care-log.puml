@@ -1,0 +1,16 @@
+@startuml
+title SEQ-03 - Sequence Diagram: Quản lý thú cưng / Nhật ký chăm sóc
+participant "Khách hàng" as P1
+participant "Giao diện" as P2
+participant "Hệ thống" as P3
+participant "Authentication" as P4
+participant "Cơ sở dữ liệu" as P5
+participant "Lưu trữ ảnh" as P6
+P1 -> P2 : Thêm/sửa thú cưng hoặc xem nhật ký
+P2 -> P3 : Gửi thông tin thú cưng/nhật ký
+P3 -> P4 : Xác nhận chủ sở hữu dữ liệu
+P3 -> P6 : Lưu ảnh thú cưng/ảnh nhật ký nếu có
+P3 -> P5 : Ghi/đọc pets và care_logs
+P5 -> P3 : Dữ liệu đã cập nhật
+P3 -> P2 : Hiển thị hồ sơ hoặc nhật ký chăm sóc
+@enduml

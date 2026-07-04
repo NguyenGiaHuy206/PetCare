@@ -1,0 +1,14 @@
+@startuml
+title SEQ-04 - Sequence Diagram: Tra cứu / Quản lý dịch vụ và sản phẩm
+participant "Khách/Admin" as P1
+participant "Giao diện" as P2
+participant "Hệ thống" as P3
+participant "Authentication" as P4
+participant "Cơ sở dữ liệu" as P5
+P1 -> P2 : Xem danh sách, tìm kiếm hoặc cập nhật catalog
+P2 -> P3 : Gửi yêu cầu tra cứu/quản lý
+P3 -> P4 : Nếu là thao tác quản lý: kiểm tra quyền Admin
+P3 -> P5 : Đọc/ghi products và categories
+P5 -> P3 : Danh sách hoặc bản ghi đã cập nhật
+P3 -> P2 : Hiển thị dịch vụ/sản phẩm hoặc thông báo lỗi
+@enduml

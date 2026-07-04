@@ -1,0 +1,14 @@
+@startuml
+title UC-03 - DFD: Quản lý hồ sơ người dùng
+rectangle "Người dùng" as User
+rectangle "Thiết bị nhập" as Input
+usecase "Cập nhật hồ sơ" as Process
+rectangle "Thiết bị xuất" as Output
+database "Bộ nhớ phụ" as Storage
+User --> Process : D1
+Process --> User : D6
+Input --> Process : D2
+Process --> Output : D5
+Storage --> Process : D3
+Process --> Storage : D4
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+title SEQ-07 - Sequence Diagram: Xem và xử lý thông báo
+participant "Người dùng/Admin" as P1
+participant "Giao diện" as P2
+participant "Hệ thống" as P3
+participant "Authentication" as P4
+participant "Cơ sở dữ liệu" as P5
+P1 -> P2 : Mở danh sách thông báo
+P2 -> P3 : Yêu cầu xem/đánh dấu đã đọc/xóa
+P3 -> P4 : Kiểm tra phiên và phạm vi dữ liệu
+P3 -> P5 : Đọc/cập nhật notifications
+P5 -> P3 : Danh sách thông báo mới
+P3 -> P2 : Hiển thị trạng thái thông báo
+@enduml
